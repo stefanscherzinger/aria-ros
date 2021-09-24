@@ -25,9 +25,9 @@ int main(int argc, char **argv){
         const ros::Time time = ros::Time::now();
         const ros::Duration period = time - prev_time;
         if (AriaClient_isConnected() > 0){
-            rosControlUDP.write();
-            controllerManager.update(time, period);
             rosControlUDP.read();
+            controllerManager.update(time, period);
+            rosControlUDP.write();
         }
         ros::spinOnce();
         loop_rate.sleep();
