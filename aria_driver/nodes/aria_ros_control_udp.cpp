@@ -29,7 +29,6 @@ int main(int argc, char **argv){
             controllerManager.update(time, period);
             rosControlUDP.write();
         }
-        ros::spinOnce();
         loop_rate.sleep();
     }
 
