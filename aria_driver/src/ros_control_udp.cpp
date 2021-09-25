@@ -2,7 +2,9 @@
 // Created by accrea on 4/28/20.
 //
 
+#include <algorithm>
 #include <aria_driver/ros_control_udp.h>
+#include <cmath>
 
 RosControlUDP::RosControlUDP() {
 
@@ -22,7 +24,7 @@ RosControlUDP::RosControlUDP() {
     joint_position_.resize(num_joints_);
     joint_velocity_.resize(num_joints_);
     joint_effort_.resize(num_joints_);
-    joint_position_command_.resize(num_joints_);
+    joint_position_command_.resize(num_joints_, std::nan("0"));
 
     for (int j = 0; j < num_joints_; ++j) {
 //    connect joint_state_interface
@@ -75,8 +77,12 @@ void RosControlUDP::write() {
         arm_init_ = true;
     } else {
         if ((AriaClient_GetArmStatus() == 50) && (frame_count_ > 350)) {
-            for (int j = 0; j < 7; ++j) {
-                AriaClient_SetJointPos(j+1, joint_position_command_[j]);
+            // Make sure we don't send uninitialized command buffers
+            if (std::none_of(joint_position_command_.begin(), joint_position_command_.end(),
+                [](double i){return std::isnan(i);})) {
+                for (int j = 0; j < 7; ++j) {
+                    AriaClient_SetJointPos(j+1, joint_position_command_[j]);
+                }
             }
         }
         frame_count_++;
