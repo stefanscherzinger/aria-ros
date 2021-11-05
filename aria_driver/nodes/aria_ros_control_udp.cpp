@@ -6,7 +6,12 @@
 #include <controller_manager/controller_manager.h>
 
 int main(int argc, char **argv){
-    const int LOOP_HZ = 100;
+    constexpr int LOOP_HZ = 100;
+
+    // Limit the maximal period to twice the nominal value.
+    // This shall prevent ROS-controllers from using huge periods when
+    // computing error correction.
+    constexpr double SAFETY_PERIOD = 2.0 / LOOP_HZ;
 
     ros::init(argc, argv, "ros_control_udp");
 
@@ -23,12 +28,15 @@ int main(int argc, char **argv){
 
     while(rosControlUDP.nh_.ok()){
         const ros::Time time = ros::Time::now();
-        const ros::Duration period = time - prev_time;
+        const ros::Duration period(
+            std::min(SAFETY_PERIOD, (time - prev_time).toSec())
+        );
         if (AriaClient_isConnected() > 0){
             rosControlUDP.read();
             controllerManager.update(time, period);
             rosControlUDP.write();
         }
+        prev_time = time;
         loop_rate.sleep();
     }
 
