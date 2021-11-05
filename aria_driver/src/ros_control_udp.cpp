@@ -60,6 +60,9 @@ void RosControlUDP::read() {
     if (AriaClient_isConnected() > 0) {
         for (int j = 0; j < 7; ++j) {
             joint_position_[j] = AriaClient_GetJointPos(j + 1);
+
+            // Safe default. Will be overwritten by active, writing ROS-controllers.
+            joint_position_command_[j] = joint_position_[j];
         }
         AriaClient_GetArmEEPosition(&EEPosAct_[0]);
         AriaClient_GetArmEEQuaternion(&EEQuatAct_[0]);
@@ -77,7 +80,7 @@ void RosControlUDP::write() {
         arm_init_ = true;
     } else {
         if ((AriaClient_GetArmStatus() == 50) && (frame_count_ > 350)) {
-            // Make sure we don't send uninitialized command buffers
+            // Make sure we only send valid commands
             if (std::none_of(joint_position_command_.begin(), joint_position_command_.end(),
                 [](double i){return std::isnan(i);})) {
                 for (int j = 0; j < 7; ++j) {
