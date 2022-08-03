@@ -216,7 +216,7 @@
       xyz="0 -1 0" />
     <limit
       lower="-3.143"
-      upper="1.689"
+      upper="-0.50"
       effort="0"
       velocity="0.7" />
     <dynamics damping="0.13" friction="10.0"/>
